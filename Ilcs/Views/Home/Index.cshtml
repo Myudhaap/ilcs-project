@@ -1,0 +1,208 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model IlcsViewModel
+
+<h1>Form Ilcs</h1>
+<form action="">
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+            <label class="form-label" asp-for="@Model.Negara">Negara</label>
+        </div>
+        <div class="col-lg-5 col-12">
+            <input type="text" class="form-control" asp-for="@Model.Negara" autocomplete="off">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+            <label class="form-label" asp-for="@Model.Pelabuhan">Pelabuhan</label>
+        </div> 
+        <div class="col-lg-5 col-12">
+            <input type="text" class="form-control" asp-for="@Model.Pelabuhan" autocomplete="off">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+            <label class="form-label" asp-for="@Model.Barang">Barang</label>
+        </div> 
+        <div class="col-lg-5 col-12">
+            <input type="text" class="form-control" asp-for="@Model.Barang" autocomplete="off">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+        </div> 
+        <div class="col-lg-6 col-12">
+            <textarea class="form-control" asp-for="@Model.BarangDescription" cols="30" rows="10" style="resize: none;" readonly></textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+            <label class="form-label" asp-for="@Model.Harga">Harga</label>
+        </div> 
+        <div class="col-lg-5 col-12">
+            <input type="text" class="form-control" asp-for="@Model.Harga" autocomplete="off">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+            <label class="form-label" asp-for="@Model.TarifBeaCukai">Tarif Bea Masuk</label>
+        </div> 
+        <div class="col-lg-2 col-10">
+            <input type="number" class="form-control" asp-for="@Model.TarifBeaCukai" autocomplete="off" readonly>
+        </div>
+        <div class="col-lg-3 col-2 text-start">
+            <span class="align-middle">%</span>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-lg-2 col-12">
+        </div> 
+        <div class="col-lg-5 col-sm-12">
+            <input type="text" class="form-control" id="hargaTarif" name="hargaTarif" readonly>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <style>
+        .custom-autocomplete {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+
+        .custom-autocomplete li {
+            list-style-type: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .custom-autocomplete li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+    <script>
+        $(document).ready(function(){
+            let negaraSelected;
+
+            $("#Negara").autocomplete({
+                minLength: 3,
+                source: async function(request, response){
+                    const negara = $("#Negara").val()
+                    const url = `https://insw-dev.ilcs.co.id/n/negara?ur_negara=${negara}`
+                    console.log(url);
+                    await $.ajax({
+                        type: "GET",
+                        url: url,
+                        dataType: "json",
+                        success: function(res){
+                            let availableTags = res
+
+                            var filteredTags = $.grep(availableTags, function (tag) {
+                                return tag.ur_negara.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+                            });
+
+                            negaraSelected = [...filteredTags]
+
+                            filteredTags = filteredTags.map(val => val.ur_negara)
+
+                            response(filteredTags);
+                        },
+                        error: function (err) {
+                            console.log(err)
+                        }
+                    })
+                },
+                open: function (event, ui) {
+                    var autocompleteList = $(this).autocomplete("widget");
+                    autocompleteList.addClass("custom-autocomplete");
+                },
+                select: function(event, ui) {
+                    negaraSelected = negaraSelected.filter(val => val.ur_negara === ui.item.value)
+                }
+            })
+
+            $("#Pelabuhan").autocomplete({
+                minLength: 3,
+                source: async function(request, response){
+                    const pelabuhan = request.term
+                    const kodeNegara = negaraSelected[0].kd_negara
+                    const url = `https://insw-dev.ilcs.co.id/n/pelabuhan?kd_negara=${kodeNegara}&ur_pelabuhan=${pelabuhan}`
+                    console.log(url);
+                    $.ajax({
+                        type: "GET",
+                        url: url,
+                        dataType: "json",
+                        success: function(res){
+                            let availableTags = res.map(val => val.ur_pelabuhan)
+
+                            var filteredTags = $.grep(availableTags, function (tag) {
+                                return tag.toLowerCase().indexOf(request.term.toLowerCase()) === 0;
+                            });
+
+                            response(filteredTags);
+                        },
+                        error: function (err) {
+                            console.log(err)
+                        },
+                        open: function (event, ui) {
+                            var autocompleteList = $(this).autocomplete("widget");
+                            autocompleteList.addClass("custom-autocomplete");
+                        },
+                    })
+                }
+            })
+
+            $("#Barang").on("keyup",function(e){
+                const barang = e.target.value
+                if(barang == "") return
+                
+                getBarang(barang)
+                getTarifBeaMasuk(barang)
+            })
+
+            $("#Harga").on("keyup", function(e){
+                const harga = e.target.value
+                const tarif = $("#TarifBeaCukai").val() / 100
+                const hargaTotal = harga * tarif
+                $("#hargaTarif").val(hargaTotal)
+            })
+
+            function getBarang(barang){
+                const url = `https://insw-dev.ilcs.co.id/n/barang?hs_code=${barang}`
+                console.log(url)
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    dataType: "json",
+                    success: function(res){
+                        const description = res[0].barang_desc
+                        $("#BarangDescription").val(description)
+                    },
+                    error: function (err) {
+                        console.log(err)
+                    },
+                })
+            }
+
+            function getTarifBeaMasuk(barang){
+                const url = `https://insw-dev.ilcs.co.id/n/tarif?hs_code=${barang}`
+                console.log(url)
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    dataType: "json",
+                    success: function(res){
+                        const tarif = res[0].tarif_bm
+                        $("#TarifBeaCukai").val(tarif)
+                    },
+                    error: function (err) {
+                        console.log(err)
+                    },
+                })
+            }
+        })
+    </script>
+}
