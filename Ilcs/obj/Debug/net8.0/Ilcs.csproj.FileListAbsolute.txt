@@ -28,3 +28,4 @@ C:\Yudha\tes\IlcsTes\Ilcs\obj\Debug\net8.0\refint\Ilcs.dll
 C:\Yudha\tes\IlcsTes\Ilcs\obj\Debug\net8.0\Ilcs.pdb
 C:\Yudha\tes\IlcsTes\Ilcs\obj\Debug\net8.0\Ilcs.genruntimeconfig.cache
 C:\Yudha\tes\IlcsTes\Ilcs\obj\Debug\net8.0\ref\Ilcs.dll
+C:\Yudha\tes\IlcsTes\Ilcs\obj\Debug\net8.0\Ilcs.sourcelink.json
