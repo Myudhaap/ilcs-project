@@ -178,7 +178,7 @@
                     url: url,
                     dataType: "json",
                     success: function(res){
-                        const description = res[0].barang_desc
+                        const description = res[0].ur_barang
                         $("#BarangDescription").val(description)
                     },
                     error: function (err) {
@@ -195,7 +195,7 @@
                     url: url,
                     dataType: "json",
                     success: function(res){
-                        const tarif = res[0].tarif_bm
+                        const tarif = res[0].ur_tarif
                         $("#TarifBeaCukai").val(tarif)
                     },
                     error: function (err) {
